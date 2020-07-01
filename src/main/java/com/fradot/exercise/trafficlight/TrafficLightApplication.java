@@ -1,4 +1,4 @@
-package com.fradot.exercise.trafficlight.trafficlight;
+package com.fradot.exercise.trafficlight;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

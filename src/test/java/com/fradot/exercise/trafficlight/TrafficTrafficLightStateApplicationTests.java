@@ -1,10 +1,10 @@
-package com.fradot.exercise.trafficlight.trafficlight;
+package com.fradot.exercise.trafficlight;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class TrafficLightApplicationTests {
+class TrafficTrafficLightStateApplicationTests {
 
 	@Test
 	void contextLoads() {

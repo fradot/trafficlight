@@ -1,6 +1,5 @@
 package com.fradot.exercise.trafficlight.scheduler;
 
-import com.fradot.exercise.trafficlight.statemachine.TrafficLightListener;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightState;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightTransition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.statemachine.StateMachine;
 
+/**
+ * This class defined a custom {@link org.springframework.scheduling.TaskScheduler} by providing a custom implementation
+ * of the {@link ThreadPoolTaskScheduler} to the {@link ScheduledTaskRegistrar}. By using this custom configuration it's
+ * possible to register a custom {@link org.springframework.scheduling.Trigger} (see {@link TrafficLightTrigger}) and
+ * control the scheduled execution interval dynamically.
+ */
 @Configuration
 @EnableScheduling
 public class TrafficLightScheduler implements SchedulingConfigurer {

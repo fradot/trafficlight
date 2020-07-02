@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * This class is registered as a listener in the {@link TrafficLightStateMachineConfig} and listens for {@link TrafficLightState} changes.
+ */
 @Component
 public class TrafficLightListener extends StateMachineListenerAdapter<TrafficLightState, TrafficLightTransition> {
 

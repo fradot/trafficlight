@@ -11,6 +11,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+/**
+ * This class is registered in the {@link TrafficLightScheduler} and provide a method to control the scheduled interval execution
+ * by overriding the <code>nextExecutionTime</code> method.
+ */
 @Component
 public class TrafficLightTrigger implements Trigger {
 

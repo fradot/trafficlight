@@ -12,6 +12,10 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 
 import java.util.EnumSet;
 
+/**
+ * This class defines the {@link org.springframework.statemachine.StateMachine} configuration which enables the state transitioning,
+ * listeners and transitions registration.
+ */
 @Configuration
 @EnableStateMachine
 public class TrafficLightStateMachineConfig extends EnumStateMachineConfigurerAdapter<TrafficLightState, TrafficLightTransition> {

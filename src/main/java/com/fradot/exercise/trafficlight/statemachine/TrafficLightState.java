@@ -1,5 +1,9 @@
 package com.fradot.exercise.trafficlight.statemachine;
 
+/**
+ * This Enum describes the three different states in which a traffic light might be.
+ * This Enum is used in {@link TrafficLightStateMachineConfig} class.
+ */
 public enum TrafficLightState {
     ORANGE("Orange", 2),
     GREEN("Green", 2),

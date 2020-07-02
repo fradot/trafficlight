@@ -5,14 +5,14 @@ package com.fradot.exercise.trafficlight.statemachine;
  * This Enum is used in {@link TrafficLightStateMachineConfig} class.
  */
 public enum TrafficLightState {
-    ORANGE("Orange", 2),
-    GREEN("Green", 2),
-    RED("Red", 2);
+    ORANGE("Orange", 1L),
+    GREEN("Green", 1L),
+    RED("Red", 1L);
 
     private final String name;
-    private final Integer defaultInterval;
+    private final Long defaultInterval;
 
-    TrafficLightState(final String name, Integer defaultInterval){
+    TrafficLightState(final String name, Long defaultInterval){
         this.name = name;
         this.defaultInterval = defaultInterval;
     }
@@ -21,7 +21,7 @@ public enum TrafficLightState {
         return name;
     }
 
-    public Integer getDefaultInterval() {
+    public Long getDefaultInterval() {
         return defaultInterval;
     }
 }

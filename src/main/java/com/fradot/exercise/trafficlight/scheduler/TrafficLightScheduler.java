@@ -23,6 +23,7 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
 
     private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
     private TrafficLightTrigger trafficLightTrigger;
+    private ScheduledTaskRegistrar scheduledTaskRegistrar;
 
     @Autowired
     public TrafficLightScheduler(TrafficLightTrigger trafficLightTrigger,
@@ -39,14 +40,20 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
      */
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+        this.scheduledTaskRegistrar = taskRegistrar;
         taskRegistrar.setTaskScheduler(threadPoolTaskScheduler());
         taskRegistrar.addTriggerTask(() -> stateMachine.sendEvent(TrafficLightTransition.TRANSITION),
                 trafficLightTrigger);
     }
 
+    @Bean
+    public ScheduledTaskRegistrar scheduledTaskRegistrar() {
+        return this.scheduledTaskRegistrar;
+    }
+
     /**
      * Provides a custom implementation of the {@link ThreadPoolTaskScheduler}.
-     * Defining the destroyMethod to shutdown in order to terminate the scheduler.
+     * Defining the destroyMethod to shutdown in order to terminate the scheduler on application shutdown.
      *
      * @return a custom implementation of the {@link ThreadPoolTaskScheduler}
      */
@@ -54,7 +61,9 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler
                 = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(1);
+
+        // We can't have more than 2 threads executing at the same time
+        threadPoolTaskScheduler.setPoolSize(2);
         threadPoolTaskScheduler.setThreadNamePrefix(
                 "TrafficLight Task Scheduler");
         return threadPoolTaskScheduler;

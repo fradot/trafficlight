@@ -9,7 +9,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.statemachine.StateMachine;
+
+import java.util.concurrent.*;
 
 /**
  * This class defined a custom {@link org.springframework.scheduling.TaskScheduler} by providing a custom implementation
@@ -21,15 +24,20 @@ import org.springframework.statemachine.StateMachine;
 @EnableScheduling
 public class TrafficLightScheduler implements SchedulingConfigurer {
 
+    @Autowired
+    private ThreadPoolTaskScheduler threadPoolTaskScheduler;
+
+    private ConcurrentMap<String, ScheduledFuture> scheduledFutureMap;
     private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
     private TrafficLightTrigger trafficLightTrigger;
-    private ScheduledTaskRegistrar scheduledTaskRegistrar;
+
 
     @Autowired
-    public TrafficLightScheduler(TrafficLightTrigger trafficLightTrigger,
-                                 StateMachine<TrafficLightState, TrafficLightTransition> stateMachine) {
+    public TrafficLightScheduler(TrafficLightTrigger trafficLightTrigger, StateMachine<TrafficLightState,
+            TrafficLightTransition> stateMachine) {
         this.stateMachine = stateMachine;
         this.trafficLightTrigger = trafficLightTrigger;
+        this.scheduledFutureMap = new ConcurrentHashMap<>(1);
     }
 
 
@@ -40,15 +48,31 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
      */
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-        this.scheduledTaskRegistrar = taskRegistrar;
-        taskRegistrar.setTaskScheduler(threadPoolTaskScheduler());
-        taskRegistrar.addTriggerTask(() -> stateMachine.sendEvent(TrafficLightTransition.TRANSITION),
+        taskRegistrar.setTaskScheduler(threadPoolTaskScheduler);
+        taskRegistrar.addTriggerTask(
+                () -> stateMachine.sendEvent(TrafficLightTransition.TRANSITION),
                 trafficLightTrigger);
     }
 
-    @Bean
-    public ScheduledTaskRegistrar scheduledTaskRegistrar() {
-        return this.scheduledTaskRegistrar;
+    /**
+     * Schedule a task to be executed based on the provided cron expression
+     *
+     * @param task
+     * @param cronExpression
+     */
+    public void addCronTask(String id, Runnable task, String cronExpression) {
+        ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler
+                .schedule(task, new CronTrigger(cronExpression));
+        scheduledFutureMap.put(id, scheduledFuture);
+    }
+
+    /**
+     * Delete the task identified by id.
+     *
+     * @param id
+     */
+    public void deleteCronTask(String id) {
+        scheduledFutureMap.get(id).cancel(true);
     }
 
     /**
@@ -59,11 +83,11 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
      */
     @Bean(destroyMethod = "shutdown")
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+        //TODO: set error handler
         ThreadPoolTaskScheduler threadPoolTaskScheduler
                 = new ThreadPoolTaskScheduler();
-
-        // We can't have more than 2 threads executing at the same time
-        threadPoolTaskScheduler.setPoolSize(2);
+        threadPoolTaskScheduler.setPoolSize(1);
+        threadPoolTaskScheduler.setRemoveOnCancelPolicy(true);
         threadPoolTaskScheduler.setThreadNamePrefix(
                 "TrafficLight Task Scheduler");
         return threadPoolTaskScheduler;

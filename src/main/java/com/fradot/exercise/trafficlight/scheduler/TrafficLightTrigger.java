@@ -1,5 +1,6 @@
 package com.fradot.exercise.trafficlight.scheduler;
 
+import com.fradot.exercise.trafficlight.model.TrafficLightConfiguration;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightState;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightTransition;
 import org.slf4j.Logger;
@@ -17,6 +18,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.concurrent.PriorityBlockingQueue;
+
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 /**
  * This class is registered in the {@link TrafficLightScheduler} and provide a method to control the scheduled interval execution
@@ -27,14 +31,14 @@ public class TrafficLightTrigger implements Trigger {
 
     private static final Logger log = LoggerFactory.getLogger(TrafficLightTrigger.class);
 
-    private TrafficLightCurrentConfiguration trafficLightCurrentConfiguration;
+    private PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue;
     private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
 
     @Autowired
-    public TrafficLightTrigger(TrafficLightCurrentConfiguration trafficLightCurrentConfiguration,
-                               StateMachine<TrafficLightState, TrafficLightTransition> stateMachine) {
-        this.trafficLightCurrentConfiguration = trafficLightCurrentConfiguration;
+    public TrafficLightTrigger(StateMachine<TrafficLightState, TrafficLightTransition> stateMachine,
+                               PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue) {
         this.stateMachine = stateMachine;
+        this.trafficLightConfigurationQueue = trafficLightConfigurationQueue;
     }
 
     @Override
@@ -46,26 +50,24 @@ public class TrafficLightTrigger implements Trigger {
     }
 
     private LocalDateTime convertToLocalDateTime(@Nullable Date date) {
-        return date != null ? Instant.ofEpochMilli(date.getTime())
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime()
-                : Instant.ofEpochMilli(new Date().getTime())
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+        return date != null ? Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime()
+                : Instant.ofEpochMilli(new Date().getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     private Duration getNextExecutionInterval(State<TrafficLightState, TrafficLightTransition> currentState) {
 
-        switch (currentState.getId()) {
-            case ORANGE:
-                return trafficLightCurrentConfiguration.getStateDurationMap().get(TrafficLightState.ORANGE);
-            case RED:
-                return trafficLightCurrentConfiguration.getStateDurationMap().get(TrafficLightState.RED);
-            case GREEN:
-                return trafficLightCurrentConfiguration.getStateDurationMap().get(TrafficLightState.GREEN);
+        if (trafficLightConfigurationQueue != null && trafficLightConfigurationQueue.size() > 0) {
+            switch (currentState.getId()) {
+                case ORANGE:
+                    return Duration.of(trafficLightConfigurationQueue.peek().getOrangeDuration(), SECONDS);
+                case RED:
+                    return Duration.of(trafficLightConfigurationQueue.peek().getRedDuration(), SECONDS);
+                case GREEN:
+                    return Duration.of(trafficLightConfigurationQueue.peek().getGreenDuration(), SECONDS);
+            }
         }
 
-        return null;
+        throw new IllegalStateException("Default Traffic Light configuration not defined!");
     }
 
 

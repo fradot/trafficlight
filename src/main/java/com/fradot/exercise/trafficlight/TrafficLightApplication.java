@@ -1,10 +1,7 @@
 package com.fradot.exercise.trafficlight;
 
 import com.fradot.exercise.trafficlight.model.TrafficLightConfiguration;
-import com.fradot.exercise.trafficlight.scheduler.TrafficLightScheduler;
-import com.fradot.exercise.trafficlight.service.TrafficLightService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,7 +28,7 @@ public class TrafficLightApplication implements CommandLineRunner {
      * available to the whole application through the TLQueueProxy which controls the operations on the actual queue.
      * (TODO: create proxy)
      *
-     * @return {@link PriorityBlockingQueue<TrafficLightConfiguration>}
+     * @return {@link PriorityBlockingQueue< TrafficLightConfiguration >}
      */
     @Bean
     @Autowired

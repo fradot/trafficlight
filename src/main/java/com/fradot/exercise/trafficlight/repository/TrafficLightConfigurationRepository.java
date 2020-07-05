@@ -11,16 +11,20 @@ import java.util.Optional;
 @Repository
 public interface TrafficLightConfigurationRepository extends JpaRepository<TrafficLightConfiguration, Long> {
 
-    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.active = true")
+    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.active = true AND c.toBeDisabled=false AND c.toBeEnabled=false")
     List<TrafficLightConfiguration> findAllActiveConfigurations();
 
-    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.active = false")
+    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.active = false AND c.toBeDisabled=false AND c.toBeEnabled=false")
     List<TrafficLightConfiguration> findAllDisabledConfigurations();
 
-    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.active IS NULL")
-    List<TrafficLightConfiguration> findAllNewConfigurations();
+    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.active = false AND c.toBeEnabled = true AND c.toBeDisabled = false")
+    List<TrafficLightConfiguration> findAllConfigurationsToBeEnabled();
 
-    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.defaultConfiguration = true")
+    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.active = true AND c.toBeEnabled = false AND c.toBeDisabled = true")
+    List<TrafficLightConfiguration> findAllConfigurationsToBeDisabled();
+
+    @Query("SELECT c FROM TrafficLightConfiguration c WHERE c.defaultConfiguration = true " +
+            "AND c.active = true AND c.toBeDisabled=false AND c.toBeEnabled=false")
     Optional<TrafficLightConfiguration> findDefaultConfiguration();
 
 }

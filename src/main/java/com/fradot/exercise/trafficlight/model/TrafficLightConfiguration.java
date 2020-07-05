@@ -40,7 +40,7 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
     @Column(name="orange_duration_in_seconds", nullable = false)
     private Long orangeDuration;
 
-    @Column(name="start_duration")
+    @Column(name="start_cron_expression")
     private String startCronExpression;
 
     @Column(name="end_cron_expression")
@@ -52,8 +52,14 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
     @Column(name="default_configuration", nullable = false)
     private Boolean defaultConfiguration;
 
-    @Column(name="active_configuration")
+    @Column(name="active", nullable = false)
     private Boolean active;
+
+    @Column(name="to_be_enabled", nullable = false)
+    private Boolean toBeEnabled;
+
+    @Column(name="to_be_disabled", nullable = false)
+    private Boolean toBeDisabled;
 
     public TrafficLightConfiguration() {
         this.thisSeq = seq.incrementAndGet();
@@ -78,7 +84,7 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
 
     public TrafficLightConfiguration(Long id, Long greenDuration, Long redDuration, Long orangeDuration,
                                      String startCronExpression, String endCronExpression, Integer priority,
-                                     Boolean defaultConfiguration, Boolean active) {
+                                     Boolean defaultConfiguration, Boolean active, Boolean toBeEnabled, Boolean toBeDisabled) {
         this.id = id;
         this.greenDuration = greenDuration;
         this.redDuration = redDuration;
@@ -87,6 +93,8 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
         this.endCronExpression = endCronExpression;
         this.priority = priority;
         this.defaultConfiguration = defaultConfiguration;
+        this.toBeEnabled = toBeEnabled;
+        this.toBeDisabled = toBeDisabled;
         this.active = active;
         this.thisSeq = seq.incrementAndGet();
 
@@ -161,6 +169,22 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
         return thisSeq;
     }
 
+    public Boolean getToBeEnabled() {
+        return toBeEnabled;
+    }
+
+    public void setToBeEnabled(Boolean toBeEnabled) {
+        this.toBeEnabled = toBeEnabled;
+    }
+
+    public Boolean getToBeDisabled() {
+        return toBeDisabled;
+    }
+
+    public void setToBeDisabled(Boolean toBeDisabled) {
+        this.toBeDisabled = toBeDisabled;
+    }
+
     public Boolean getActive() {
         return active;
     }
@@ -202,7 +226,7 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
                 ", endCronExpression='" + endCronExpression + '\'' +
                 ", priority=" + priority +
                 ", defaultConfiguration=" + defaultConfiguration +
-                ", active=" + active +
+                ", active=" + toBeEnabled +
                 '}';
     }
 

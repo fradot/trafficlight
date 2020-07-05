@@ -70,7 +70,7 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
                 Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusSeconds(initialDelay).toInstant()));
     }
 
-    private synchronized void executeStartup() {
+    private void executeStartup() {
         for(Object task: this.startupTasks) {
             Runnable startupTask = (Runnable) task;
             startupTask.run();

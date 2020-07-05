@@ -1,7 +1,6 @@
 package com.fradot.exercise.trafficlight;
 
 import com.fradot.exercise.trafficlight.model.TrafficLightConfiguration;
-import com.fradot.exercise.trafficlight.repository.TrafficLightConfigurationRepository;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightState;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightTransition;
 import org.junit.jupiter.api.DisplayName;
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.test.StateMachineTestPlan;
@@ -34,7 +32,6 @@ class TrafficTrafficLightApplicationIT {
     @Autowired
     private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
 
-
     @DisplayName("It should load a default configuration from the database")
     @Test
     @Order(1)
@@ -51,10 +48,34 @@ class TrafficTrafficLightApplicationIT {
         await().until(() -> !trafficLightConfigurationQueue.isEmpty());
         await()
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.RED));
-        await().between(900, TimeUnit.MILLISECONDS, 1100, TimeUnit.MILLISECONDS)
+        await()
+                .atMost(1100, TimeUnit.MILLISECONDS)
                 .and()
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.GREEN));
-        await().between(900, TimeUnit.MILLISECONDS, 1100, TimeUnit.MILLISECONDS)
+        await()
+                .atMost(1100, TimeUnit.MILLISECONDS)
+                .and()
+                .until(() -> stateMachine.getState().getId().equals(TrafficLightState.ORANGE));
+
+        assertThat(stateMachine.getState().getId()).isEqualTo(TrafficLightState.ORANGE);
+    }
+
+
+    @DisplayName("It should trigger the transition according to the configuration with highest priority.")
+    @Test
+    @Order(2)
+    public void itShouldTriggerTheTransitionAccordingToTheConfigurationWithHighestPriority() throws Exception {
+        await().timeout(100, TimeUnit.SECONDS)
+                .and()
+                .until(() ->trafficLightConfigurationQueue.size() >= 3);
+
+        await()
+                .timeout(20, TimeUnit.SECONDS)
+                .and()
+                .until(() -> stateMachine.getState().getId().equals(TrafficLightState.GREEN));
+
+        await()
+                .between(4500, TimeUnit.MILLISECONDS, 5800, TimeUnit.MILLISECONDS)
                 .and()
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.ORANGE));
 

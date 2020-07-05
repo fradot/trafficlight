@@ -4,6 +4,8 @@ import com.fradot.exercise.trafficlight.model.TrafficLightConfiguration;
 import com.fradot.exercise.trafficlight.repository.TrafficLightConfigurationRepository;
 import com.fradot.exercise.trafficlight.scheduler.TrafficLightRunnableTask;
 import com.fradot.exercise.trafficlight.scheduler.TrafficLightScheduler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,83 +16,103 @@ import java.util.Optional;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 
-/**
- * This class maintains the logic to handle the {@link TrafficLightConfiguration} life cycle.
- */
+/** This class maintains the logic to handle the {@link TrafficLightConfiguration} life cycle. */
 @Service
 @Transactional
 public class TrafficLightService {
 
-    private TrafficLightScheduler trafficLightScheduler;
-    private PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue;
-    private TrafficLightConfigurationRepository trafficLightConfigurationRepository;
+  private static final Logger log = LoggerFactory.getLogger(TrafficLightService.class);
 
-    @Autowired
-    public TrafficLightService(TrafficLightScheduler trafficLightScheduler,
-                               PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue,
-                               TrafficLightConfigurationRepository trafficLightConfigurationRepository) {
-        this.trafficLightScheduler = trafficLightScheduler;
-        this.trafficLightConfigurationQueue = trafficLightConfigurationQueue;
-        this.trafficLightConfigurationRepository = trafficLightConfigurationRepository;
-    }
+  private TrafficLightScheduler trafficLightScheduler;
+  private PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue;
+  private TrafficLightConfigurationRepository trafficLightConfigurationRepository;
 
+  @Autowired
+  public TrafficLightService(
+      TrafficLightScheduler trafficLightScheduler,
+      PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue,
+      TrafficLightConfigurationRepository trafficLightConfigurationRepository) {
+    this.trafficLightScheduler = trafficLightScheduler;
+    this.trafficLightConfigurationQueue = trafficLightConfigurationQueue;
+    this.trafficLightConfigurationRepository = trafficLightConfigurationRepository;
+  }
 
-    public void synchWithDatabase() {
-        List<TrafficLightConfiguration> toBeEnabled =
-                this.trafficLightConfigurationRepository.findAllConfigurationsToBeEnabled();
-        List<TrafficLightConfiguration> toBeDisabled =
-                this.trafficLightConfigurationRepository.findAllConfigurationsToBeDisabled();
+  public void synchWithDatabase() {
+    this.enableConfigurations(
+        this.trafficLightConfigurationRepository.findAllConfigurationsToBeEnabled());
 
-    }
+    // TODO: handle disabling configurations
+    List<TrafficLightConfiguration> toBeDisabledList =
+        this.trafficLightConfigurationRepository.findAllConfigurationsToBeDisabled();
+  }
 
+  @Transactional
+  private void enableConfigurations(List<TrafficLightConfiguration> trafficLightConfigurationList) {
 
-    @Transactional
-    private void enableConfigurations() {
+    Optional<TrafficLightConfiguration> defaultConfiguration =
+        trafficLightConfigurationList.stream()
+            .filter(TrafficLightConfiguration::isDefaultConfiguration)
+            .findFirst();
 
-        // Get all active configurations including default
-        List<TrafficLightConfiguration> trafficLightConfigurationList =
-                trafficLightConfigurationRepository.findAllActiveConfigurations();
+    List<TrafficLightConfiguration> trafficLightConfigurationListToBeScheduled =
+        trafficLightConfigurationList.stream()
+            .filter(configuration -> !configuration.isDefaultConfiguration())
+            .collect(Collectors.toList());
 
-        Optional<TrafficLightConfiguration> defaultConfiguration = trafficLightConfigurationList.stream()
-                .filter(TrafficLightConfiguration::isDefaultConfiguration)
-                .findFirst();
+    if (defaultConfiguration.isPresent()) {
+      trafficLightConfigurationQueue.add(defaultConfiguration.get());
 
-        List<TrafficLightConfiguration> trafficLightConfigurationListToBeScheduled = trafficLightConfigurationList.stream()
-                .filter(configuration -> !configuration.isDefaultConfiguration()).collect(Collectors.toList());
+      // Schedule enabling and disabling tasks
+      for (TrafficLightConfiguration configuration : trafficLightConfigurationListToBeScheduled) {
 
-        if(defaultConfiguration.isPresent()) {
-            trafficLightConfigurationQueue.add(defaultConfiguration.get());
-
-            // Schedule enabling and disabling tasks
-            for (TrafficLightConfiguration configuration : trafficLightConfigurationListToBeScheduled) {
-                TrafficLightRunnableTask enabling = new TrafficLightRunnableTask(this.trafficLightConfigurationQueue,
-                        configuration, true, false);
-                TrafficLightRunnableTask disabling = new TrafficLightRunnableTask(this.trafficLightConfigurationQueue,
-                        configuration, false, true);
-                String enablingTaskId = configuration.getId().toString() + "enabling";
-                String disablingTaskId = configuration.getId().toString() + "disabling";
-                trafficLightScheduler.addCronTask(enablingTaskId, enabling, configuration.getStartCronExpression());
-                trafficLightScheduler.addCronTask(disablingTaskId, disabling, configuration.getEndCronExpression());
-            }
-
-            trafficLightConfigurationList.forEach(configuration -> {
-                configuration.setActive(true);
-                configuration.setToBeDisabled(false);
-                configuration.setToBeEnabled(false);
-            });
-
-            this.trafficLightConfigurationRepository.saveAll(trafficLightConfigurationList);
+        // enabling task
+        if (configuration.getStartCronExpression() == null || (configuration.getStartCronExpression() != null &&
+                configuration.getStartCronExpression().isEmpty())) {
+          log.warn("Start cron expression is not defined, configuration will never be activated!");
         } else {
-            throw new IllegalStateException("Default configuration not present in the database");
+          String enablingTaskId = configuration.getId().toString() + "enabling";
+          TrafficLightRunnableTask enabling =
+              new TrafficLightRunnableTask(
+                  this.trafficLightConfigurationQueue, configuration, true, false);
+          trafficLightScheduler.addCronTask(
+              enablingTaskId, enabling, configuration.getStartCronExpression());
         }
 
+        // disabling task
+        if (configuration.getEndCronExpression() == null || (configuration.getEndCronExpression() != null &&
+                configuration.getEndCronExpression().isEmpty())) {
+            log.warn("Start cron expression is not defined, configuration will never be activated!");
+        } else {
+          TrafficLightRunnableTask disabling =
+              new TrafficLightRunnableTask(
+                  this.trafficLightConfigurationQueue, configuration, false, true);
+          String disablingTaskId = configuration.getId().toString() + "disabling";
+          trafficLightScheduler.addCronTask(
+              disablingTaskId, disabling, configuration.getEndCronExpression());
+        }
+      }
+
+      trafficLightConfigurationList.forEach(
+          configuration -> {
+            configuration.setActive(true);
+            configuration.setToBeDisabled(false);
+            configuration.setToBeEnabled(false);
+          });
+
+      this.trafficLightConfigurationRepository.saveAll(trafficLightConfigurationList);
+    } else {
+      throw new IllegalStateException("Default configuration not present in the database");
     }
+  }
 
+  private void enableAllActiveConfigurationsAtStartup() {
+    log.info("Loading all configurations from the database");
+    this.enableConfigurations(
+        this.trafficLightConfigurationRepository.findAllActiveConfigurations());
+  }
 
-    @PostConstruct
-    public void init() {
-        trafficLightScheduler.addStartupTask(this::enableConfigurations);
-    }
-
-
+  @PostConstruct
+  public void init() {
+    trafficLightScheduler.addStartupTask(this::enableAllActiveConfigurationsAtStartup);
+  }
 }

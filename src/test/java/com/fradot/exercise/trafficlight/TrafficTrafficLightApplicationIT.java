@@ -18,6 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,6 +69,8 @@ class TrafficTrafficLightApplicationIT {
         await().timeout(100, TimeUnit.SECONDS)
                 .and()
                 .until(() ->trafficLightConfigurationQueue.size() >= 3);
+
+        sleep(1000);
 
         await()
                 .timeout(20, TimeUnit.SECONDS)

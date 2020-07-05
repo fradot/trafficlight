@@ -6,7 +6,6 @@ import com.fradot.exercise.trafficlight.statemachine.TrafficLightTransition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.statemachine.StateMachine;
@@ -49,9 +48,10 @@ public class TrafficLightTrigger implements Trigger {
 
     }
 
-    private LocalDateTime convertToLocalDateTime(@Nullable Date date) {
-        return date != null ? Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime()
-                : Instant.ofEpochMilli(new Date().getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    private LocalDateTime convertToLocalDateTime(Date date) {
+        return date != null ?
+                Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime()
+                : LocalDateTime.now(ZoneId.systemDefault());
     }
 
     private Duration getNextExecutionInterval(State<TrafficLightState, TrafficLightTransition> currentState) {

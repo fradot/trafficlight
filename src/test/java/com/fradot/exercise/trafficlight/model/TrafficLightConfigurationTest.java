@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for {@link TrafficLightConfiguration}
@@ -34,25 +35,25 @@ public class TrafficLightConfigurationTest {
 
     @Test
     public void itShouldBeEqualToAnObjectWithTheSameProperties() {
-        TrafficLightConfiguration testConfiguration =  new TrafficLightConfiguration(
+        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
                 1L, 1L, 1L, 1L, START_CRON,
                 END_CRON, 6, false);
 
-        assertThat(trafficLightConfiguration).isEqualTo(testConfiguration);
+        assertTrue(trafficLightConfiguration.equals(testConfiguration));
     }
 
     @Test
     public void itShouldBeDifferentFromAnObjectWithDifferentProperties() {
-        TrafficLightConfiguration testConfiguration =  new TrafficLightConfiguration(
+        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
                 -1L, 1L, 1L, 1L, START_CRON,
                 END_CRON, 6, true);
 
-        assertThat(trafficLightConfiguration).isNotEqualTo(testConfiguration);
+        assertTrue(!trafficLightConfiguration.equals(testConfiguration));
     }
 
     @Test
     public void itShouldCompareGreaterThanAnObjectWithLowestPriority() {
-        TrafficLightConfiguration testConfiguration =  new TrafficLightConfiguration(
+        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
                 -1L, 1L, 1L, 1L, START_CRON,
                 END_CRON, 5, false);
 
@@ -61,7 +62,7 @@ public class TrafficLightConfigurationTest {
 
     @Test
     public void itShouldCompareLessThanAnObjectWithLowestPriority() {
-        TrafficLightConfiguration testConfiguration =  new TrafficLightConfiguration(
+        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
                 -1L, 1L, 1L, 1L, START_CRON,
                 END_CRON, 7, false);
 
@@ -70,7 +71,7 @@ public class TrafficLightConfigurationTest {
 
     @Test
     public void itShouldCompareEqualToAnObjectWithTheSamePriorityAndSameProperties() {
-        TrafficLightConfiguration testConfiguration =  new TrafficLightConfiguration(
+        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
                 -1L, 1L, 1L, 1L, START_CRON,
                 END_CRON, 6, false);
 

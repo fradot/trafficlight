@@ -64,11 +64,12 @@ public class TrafficLightTriggerTest {
     }
 
     @Test
-    public void itShouldCalculateTheNextExecutionTimeBasedOnCurrentDateTimeForTheFirstExecution() {
+    public void itShouldCalculateTheNextExecutionTimeBasedOnCurrentDateTimePlusDelayForTheFirstExecution() {
         this.trafficLightConfigurationQueue = new PriorityBlockingQueue<>(1);
-        this.trafficLightConfigurationQueue.add(new TrafficLightConfiguration(1L,10L, 10L, 10L,
-                "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?",5,false));
+        this.trafficLightConfigurationQueue.add(new TrafficLightConfiguration(1L, 10L, 10L, 10L,
+                "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?", 5, false));
         this.trafficLightTriggerUnderTest = new TrafficLightTrigger(stateMachine, trafficLightConfigurationQueue);
+
 
         when(triggerContext.lastActualExecutionTime()).thenReturn(null);
         when(orangeState.getId()).thenReturn(TrafficLightState.ORANGE);
@@ -84,8 +85,8 @@ public class TrafficLightTriggerTest {
     @Test
     public void itShouldCalculateTheNextExecutionTimeBasedOnLastActualExecutionTimeIfPresent() {
         this.trafficLightConfigurationQueue = new PriorityBlockingQueue<>(1);
-        this.trafficLightConfigurationQueue.add(new TrafficLightConfiguration(1L,10L, 10L, 10L,
-                "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?",5,false));
+        this.trafficLightConfigurationQueue.add(new TrafficLightConfiguration(1L, 10L, 10L, 10L,
+                "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?", 5, false));
         this.trafficLightTriggerUnderTest = new TrafficLightTrigger(stateMachine, trafficLightConfigurationQueue);
 
         LocalDateTime currentTime = LocalDateTime.now();

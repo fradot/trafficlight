@@ -1,6 +1,7 @@
 package com.fradot.exercise.trafficlight;
 
 import com.fradot.exercise.trafficlight.model.TrafficLightConfiguration;
+import com.fradot.exercise.trafficlight.scheduler.TrafficLightScheduler;
 import com.fradot.exercise.trafficlight.service.TrafficLightService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.util.Collections;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -18,12 +20,11 @@ import java.util.concurrent.PriorityBlockingQueue;
 @SpringBootApplication
 public class TrafficLightApplication implements CommandLineRunner {
 
-    @Autowired
-    private TrafficLightService trafficLightService;
-
     public static void main(String[] args) {
         SpringApplication.run(TrafficLightApplication.class, args);
     }
+
+    //TODO: persist database
 
     /**
      * The <code>trafficLightConfigurationQueue</code> contains all the active configurations and these are
@@ -34,19 +35,26 @@ public class TrafficLightApplication implements CommandLineRunner {
      */
     @Bean
     @Autowired
-    public PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue(
-            @Value("trafficlight.max.number.configurations") Integer maxConfigurations) {
+    public PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue() {
+        return new PriorityBlockingQueue<>(10, Collections.reverseOrder());
+    }
 
-        final PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue =
-                new PriorityBlockingQueue<>(maxConfigurations, Collections.reverseOrder());
-
-        // TODO: load default configuration from the database
-        final TrafficLightConfiguration defaultConfiguration = new TrafficLightConfiguration(
-                0L, 1L, 1L, 1L, null,
-                null, 0, true);
-        trafficLightConfigurationQueue.add(defaultConfiguration);
-
-        return trafficLightConfigurationQueue;
+    /**
+     * Provides a custom implementation of the {@link ThreadPoolTaskScheduler}.
+     * Defining the destroyMethod to shutdown in order to terminate the scheduler on application shutdown.
+     *
+     * @return a custom implementation of the {@link ThreadPoolTaskScheduler}
+     */
+    @Bean(destroyMethod = "shutdown")
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+        //TODO: set error handler
+        ThreadPoolTaskScheduler threadPoolTaskScheduler
+                = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.setPoolSize(1);
+        threadPoolTaskScheduler.setRemoveOnCancelPolicy(true);
+        threadPoolTaskScheduler.setThreadNamePrefix(
+                "TrafficLight Task Scheduler");
+        return threadPoolTaskScheduler;
     }
 
     @Override

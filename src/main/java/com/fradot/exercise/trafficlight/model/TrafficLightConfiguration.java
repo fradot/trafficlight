@@ -1,5 +1,6 @@
 package com.fradot.exercise.trafficlight.model;
 
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -15,19 +16,48 @@ import java.util.concurrent.atomic.AtomicLong;
  *                      the configuration with highest priority will be used.
  * <code>defaultConfiguration</code>    A Default configuration is always active and has the lowest priority.
  */
+@Entity
+@Table(name = TrafficLightConfiguration.TABLE)
 public class TrafficLightConfiguration implements Serializable, Comparable<TrafficLightConfiguration> {
 
-    static final AtomicLong seq = new AtomicLong(0);
+    public static final String TABLE = "tl_configuration";
+    private static final AtomicLong seq = new AtomicLong(0);
 
-    private Long id;
-    private Long greenDuration;
-    private Long redDuration;
-    private Long orangeDuration;
-    private String startCronExpression;
-    private String endCronExpression;
-    private Integer priority;
+    @Transient
     private Long thisSeq;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", unique = true)
+    private Long id;
+
+    @Column(name="green_duration_in_seconds", nullable = false)
+    private Long greenDuration;
+
+    @Column(name="red_duration_in_seconds", nullable = false)
+    private Long redDuration;
+
+    @Column(name="orange_duration_in_seconds", nullable = false)
+    private Long orangeDuration;
+
+    @Column(name="start_duration")
+    private String startCronExpression;
+
+    @Column(name="end_cron_expression")
+    private String endCronExpression;
+
+    @Column(name="priority", nullable = false)
+    private Integer priority;
+
+    @Column(name="default_configuration", nullable = false)
     private Boolean defaultConfiguration;
+
+    @Column(name="active_configuration")
+    private Boolean active;
+
+    public TrafficLightConfiguration() {
+        this.thisSeq = seq.incrementAndGet();
+    }
 
     public TrafficLightConfiguration(Long id, Long greenDuration, Long redDuration, Long orangeDuration,
                                      String startCronExpression, String endCronExpression, Integer priority,
@@ -44,6 +74,23 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
 
         //TODO: raise an IllegalStateException if seq is greater than the max number of configurations allowed.
 
+    }
+
+    public TrafficLightConfiguration(Long id, Long greenDuration, Long redDuration, Long orangeDuration,
+                                     String startCronExpression, String endCronExpression, Integer priority,
+                                     Boolean defaultConfiguration, Boolean active) {
+        this.id = id;
+        this.greenDuration = greenDuration;
+        this.redDuration = redDuration;
+        this.orangeDuration = orangeDuration;
+        this.startCronExpression = startCronExpression;
+        this.endCronExpression = endCronExpression;
+        this.priority = priority;
+        this.defaultConfiguration = defaultConfiguration;
+        this.active = active;
+        this.thisSeq = seq.incrementAndGet();
+
+        //TODO: raise an IllegalStateException if seq is greater than the max number of configurations allowed.
     }
 
     public Long getId() {
@@ -114,6 +161,14 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
         return thisSeq;
     }
 
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (this == other) return true;
@@ -147,6 +202,7 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
                 ", endCronExpression='" + endCronExpression + '\'' +
                 ", priority=" + priority +
                 ", defaultConfiguration=" + defaultConfiguration +
+                ", active=" + active +
                 '}';
     }
 

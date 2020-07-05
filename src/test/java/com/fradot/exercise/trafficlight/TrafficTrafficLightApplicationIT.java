@@ -61,7 +61,7 @@ class TrafficTrafficLightApplicationIT {
     }
 
 
-    @DisplayName("It should trigger the transition according to the configuration with highest priority.")
+    @DisplayName("It should trigger the transition according to the configuration with the highest priority.")
     @Test
     @Order(2)
     public void itShouldTriggerTheTransitionAccordingToTheConfigurationWithHighestPriority() throws Exception {
@@ -75,12 +75,38 @@ class TrafficTrafficLightApplicationIT {
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.GREEN));
 
         await()
-                .between(4500, TimeUnit.MILLISECONDS, 5800, TimeUnit.MILLISECONDS)
+                .between(4500, TimeUnit.MILLISECONDS, 5500, TimeUnit.MILLISECONDS)
                 .and()
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.ORANGE));
 
         assertThat(stateMachine.getState().getId()).isEqualTo(TrafficLightState.ORANGE);
     }
+
+    @DisplayName("It should use the default configuration once other configurations are disabled.")
+    @Test
+    @Order(3)
+    public void itShouldUseTheDeffaultCOnfigurationOnceOtherConfigurationsAreDisabled() throws Exception {
+        await().timeout(120, TimeUnit.SECONDS)
+                .and()
+                .until(() ->trafficLightConfigurationQueue.size() >= 3);
+
+        await().timeout(120, TimeUnit.SECONDS)
+                .and()
+                .until(() -> trafficLightConfigurationQueue.size() == 1);
+
+        await()
+                .timeout(4, TimeUnit.SECONDS)
+                .and()
+                .until(() -> stateMachine.getState().getId().equals(TrafficLightState.GREEN));
+
+        await()
+                .between(500, TimeUnit.MILLISECONDS, 1500, TimeUnit.MILLISECONDS)
+                .and()
+                .until(() -> stateMachine.getState().getId().equals(TrafficLightState.ORANGE));
+
+        assertThat(stateMachine.getState().getId()).isEqualTo(TrafficLightState.ORANGE);
+    }
+
 
 
     @DisplayName("The initial State should be RED.")

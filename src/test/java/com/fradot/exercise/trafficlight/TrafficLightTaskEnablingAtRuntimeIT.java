@@ -2,6 +2,7 @@ package com.fradot.exercise.trafficlight;
 
 import com.fradot.exercise.trafficlight.model.TrafficLightConfiguration;
 import com.fradot.exercise.trafficlight.repository.TrafficLightConfigurationRepository;
+import com.fradot.exercise.trafficlight.scheduler.TrafficLightScheduler;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightState;
 import com.fradot.exercise.trafficlight.statemachine.TrafficLightTransition;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +24,7 @@ import static org.awaitility.Awaitility.await;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-class TrafficLightEnablingAtRuntimeIT {
+class TrafficLightTaskEnablingAtRuntimeIT {
 
   @Autowired
   private PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue;
@@ -32,17 +33,19 @@ class TrafficLightEnablingAtRuntimeIT {
 
   @Autowired private TrafficLightConfigurationRepository trafficLightConfigurationRepository;
 
-  private static final Logger log = LoggerFactory.getLogger(TrafficLightEnablingAtRuntimeIT.class);
+  @Autowired private TrafficLightScheduler trafficLightScheduler;
+
+  private static final Logger log = LoggerFactory.getLogger(TrafficLightTaskEnablingAtRuntimeIT.class);
 
 
   @DisplayName("It should schedule a new configuration created at runtime.")
   @Test
   @Order(1)
-  public void itShouldUScheduleANewConfigurationCreatedAtRuntime() throws Exception {
+  public void itShouldScheduleANewConfigurationCreatedAtRuntime() throws Exception {
 
     log.info("wait for 3 configurations to be scheduled.");
     await()
-        .timeout(120, TimeUnit.SECONDS)
+        .timeout(200, TimeUnit.SECONDS)
         .and()
         .until(() -> trafficLightConfigurationQueue.size() >= 3);
 
@@ -50,7 +53,7 @@ class TrafficLightEnablingAtRuntimeIT {
     TrafficLightConfiguration trafficLightConfiguration =
         new TrafficLightConfiguration(
             5L, 20L, 16L, 21L, "0/1 * * 1/1 * ?", null, 5, false, false, true, false);
-    TrafficLightConfiguration createdConfiguration = trafficLightConfigurationRepository.save(trafficLightConfiguration);
+    TrafficLightConfiguration newlyCreatedConfiguration = trafficLightConfigurationRepository.save(trafficLightConfiguration);
 
     log.info("wait for the new configuration to be activated.");
     await()

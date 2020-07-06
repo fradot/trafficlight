@@ -1,5 +1,10 @@
 package com.fradot.exercise.trafficlight.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
@@ -25,6 +30,7 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
 
     public static final String TABLE = "tl_configuration";
     private static final AtomicLong seq = new AtomicLong(0);
+    private static final Logger log = LoggerFactory.getLogger(TrafficLightConfiguration.class);
 
     @Transient
     private Long thisSeq;
@@ -86,10 +92,6 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
         this.priority = priority;
         this.defaultConfiguration = defaultConfiguration;
         this.thisSeq = seq.incrementAndGet();
-
-        // TODO: raise an IllegalStateException if seq is greater than the max number of configurations
-        // allowed.
-
     }
 
     public TrafficLightConfiguration(
@@ -116,9 +118,6 @@ public class TrafficLightConfiguration implements Serializable, Comparable<Traff
         this.toBeDisabled = toBeDisabled;
         this.active = active;
         this.thisSeq = seq.incrementAndGet();
-
-        // TODO: raise an IllegalStateException if seq is greater than the max number of configurations
-        // allowed.
     }
 
     public Long getId() {

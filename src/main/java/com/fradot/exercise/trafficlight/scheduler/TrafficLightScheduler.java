@@ -113,4 +113,11 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
     public void deleteCronTask(String id) {
         scheduledFutureMap.get(id).cancel(true);
     }
+
+    /**
+     * Delete all scheduled tasks
+     */
+    public void deleteAllScheduledTasks() {
+        scheduledFutureMap.values().forEach(task -> task.cancel(true));
+    }
 }

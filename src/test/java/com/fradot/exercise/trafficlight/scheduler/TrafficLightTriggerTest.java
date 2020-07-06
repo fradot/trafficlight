@@ -39,7 +39,7 @@ public class TrafficLightTriggerTest {
     private TrafficLightTrigger trafficLightTriggerUnderTest;
 
     @Test(expected = IllegalStateException.class)
-    public void itShouldRaiseAnIllegalStateExceptionIfTheConfigurationQueueIsNotInitialized() {
+    public void itShouldThrowAnIllegalStateExceptionIfTheConfigurationQueueIsNotInitialized() {
         this.trafficLightTriggerUnderTest = new TrafficLightTrigger(stateMachine, trafficLightConfigurationQueue);
 
         when(orangeState.getId()).thenReturn(TrafficLightState.ORANGE);

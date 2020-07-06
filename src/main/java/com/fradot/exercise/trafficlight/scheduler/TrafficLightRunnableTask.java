@@ -33,7 +33,6 @@ public class TrafficLightRunnableTask implements Runnable {
 
     @Override
     public void run() {
-        // TODO: refactor and use the service to handle this logic
         // Configuration is already scheduled so it needs to be removed from the queue to be disabled.
         // if it's the default configuration it won't be removed
         if (trafficLightConfigurationQueue.contains(this.trafficLightConfiguration)

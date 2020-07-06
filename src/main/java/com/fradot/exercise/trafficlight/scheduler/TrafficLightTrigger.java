@@ -43,6 +43,7 @@ public class TrafficLightTrigger implements Trigger {
 
     @Override
     public Date nextExecutionTime(TriggerContext triggerContext) {
+        log.debug("Calculating next execution time.");
         Duration nextInterval = getNextExecutionInterval(stateMachine.getState());
         LocalDateTime lastExecutionTime = convertToLocalDateTime(triggerContext.lastActualExecutionTime());
         return Date.from(lastExecutionTime
@@ -50,6 +51,8 @@ public class TrafficLightTrigger implements Trigger {
                 .plusSeconds(nextInterval.getSeconds())
                 .toInstant());
     }
+
+
 
     private LocalDateTime convertToLocalDateTime(Date date) {
         return date != null
@@ -72,6 +75,7 @@ public class TrafficLightTrigger implements Trigger {
             }
         }
 
+        log.error("Error while calculating next execution time, default configuration is not defined!");
         throw new IllegalStateException("Default Traffic Light configuration not defined!");
     }
 }

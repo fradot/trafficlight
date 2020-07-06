@@ -1,6 +1,8 @@
 package com.fradot.exercise.trafficlight;
 
 import com.fradot.exercise.trafficlight.model.TrafficLightConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,11 +17,11 @@ import java.util.concurrent.PriorityBlockingQueue;
 @SpringBootApplication
 public class TrafficLightApplication implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(TrafficLightApplication.class);
+
     public static void main(String[] args) {
         SpringApplication.run(TrafficLightApplication.class, args);
     }
-
-    // TODO: persist database
 
     /**
      * The <code>trafficLightConfigurationQueue</code> contains all the active configurations and
@@ -42,11 +44,13 @@ public class TrafficLightApplication implements CommandLineRunner {
      */
     @Bean(destroyMethod = "shutdown")
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
-        // TODO: set error handler
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(1);
         threadPoolTaskScheduler.setRemoveOnCancelPolicy(true);
         threadPoolTaskScheduler.setThreadNamePrefix("TrafficLight Task Scheduler");
+        threadPoolTaskScheduler.setErrorHandler(throwable -> {
+            log.error("Traffic Light task scheduler error {}", throwable.getMessage());
+        });
         return threadPoolTaskScheduler;
     }
 

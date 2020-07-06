@@ -26,21 +26,15 @@ public class TrafficLightRunnableTaskTest {
     private TrafficLightRunnableTask trafficLightRunnableTask_Disabling_UnderTest;
     private TrafficLightRunnableTask trafficLightRunnableTask_Disabling_DefaultUnderTest;
 
-
     @Before
     public void init() {
-        trafficLightConfiguration = new TrafficLightConfiguration(
-                1L, 5L, 4L, 2L, START_CRON,
-                END_CRON, 2, false);
+        trafficLightConfiguration = new TrafficLightConfiguration(1L, 5L, 4L, 2L, START_CRON, END_CRON, 2, false);
 
-        TrafficLightConfiguration trafficLightConfiguration2 = new TrafficLightConfiguration(
-                2L, 10L, 3L, 5L, START_CRON,
-                END_CRON, 1, false);
+        TrafficLightConfiguration trafficLightConfiguration2 =
+                new TrafficLightConfiguration(2L, 10L, 3L, 5L, START_CRON, END_CRON, 1, false);
 
-        defaultTrafficLightConfiguration = new TrafficLightConfiguration(
-                -1L, 1L, 1L, 1L, START_CRON,
-                END_CRON, 0, true);
-
+        defaultTrafficLightConfiguration =
+                new TrafficLightConfiguration(-1L, 1L, 1L, 1L, START_CRON, END_CRON, 0, true);
 
         trafficLightConfigurationQueue = new PriorityBlockingQueue<>();
         trafficLightConfigurationQueue.add(defaultTrafficLightConfiguration);
@@ -50,8 +44,8 @@ public class TrafficLightRunnableTaskTest {
                 new TrafficLightRunnableTask(trafficLightConfigurationQueue, trafficLightConfiguration, true, false);
         trafficLightRunnableTask_Disabling_UnderTest =
                 new TrafficLightRunnableTask(trafficLightConfigurationQueue, trafficLightConfiguration, false, true);
-        trafficLightRunnableTask_Disabling_DefaultUnderTest =
-                new TrafficLightRunnableTask(trafficLightConfigurationQueue, defaultTrafficLightConfiguration, false, true);
+        trafficLightRunnableTask_Disabling_DefaultUnderTest = new TrafficLightRunnableTask(
+                trafficLightConfigurationQueue, defaultTrafficLightConfiguration, false, true);
     }
 
     @Test
@@ -72,12 +66,9 @@ public class TrafficLightRunnableTaskTest {
         assertThat(trafficLightConfigurationQueue).contains(defaultTrafficLightConfiguration);
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void itShouldThrowAnIllegalArgumentExceptionWhenBothEnablingAndDisablingAreTrue() {
-        TrafficLightRunnableTask trafficLightRunnableTask = new TrafficLightRunnableTask(trafficLightConfigurationQueue,
-                defaultTrafficLightConfiguration, true, true);
+        TrafficLightRunnableTask trafficLightRunnableTask = new TrafficLightRunnableTask(
+                trafficLightConfigurationQueue, defaultTrafficLightConfiguration, true, true);
     }
-
-
 }

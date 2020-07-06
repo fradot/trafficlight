@@ -30,14 +30,16 @@ public class TrafficLightConfigurationDisablingAtRuntimeIT {
     @Autowired
     private PriorityBlockingQueue<TrafficLightConfiguration> trafficLightConfigurationQueue;
 
-    @Autowired private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
+    @Autowired
+    private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
 
-    @Autowired private TrafficLightConfigurationRepository trafficLightConfigurationRepository;
+    @Autowired
+    private TrafficLightConfigurationRepository trafficLightConfigurationRepository;
 
-    @Autowired private TrafficLightScheduler trafficLightScheduler;
+    @Autowired
+    private TrafficLightScheduler trafficLightScheduler;
 
     private static final Logger log = LoggerFactory.getLogger(TrafficLightTaskEnablingAtRuntimeIT.class);
-
 
     @DisplayName("It should disable a configuration at runtime.")
     @Order(1)
@@ -45,10 +47,7 @@ public class TrafficLightConfigurationDisablingAtRuntimeIT {
     public void itShouldDisableAConfigurationAtRuntime() throws Exception {
 
         log.info("wait for all the configuration to be active.");
-        await()
-                .timeout(200, TimeUnit.SECONDS)
-                .and()
-                .until(() -> trafficLightConfigurationQueue.size() >= 3);
+        await().timeout(200, TimeUnit.SECONDS).and().until(() -> trafficLightConfigurationQueue.size() >= 3);
 
         log.info("Update the highest in priority configuration to be disabled");
         TrafficLightConfiguration highPriorityConfiguration = trafficLightConfigurationQueue.peek();
@@ -59,13 +58,11 @@ public class TrafficLightConfigurationDisablingAtRuntimeIT {
         sleep(185000);
 
         log.info("wait for RED.");
-        await()
-                .timeout(20, TimeUnit.SECONDS)
+        await().timeout(20, TimeUnit.SECONDS)
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.RED));
 
         log.info("GREEN is displayed after between 1500ms and 2500ms.");
-        await()
-                .between(700, TimeUnit.MILLISECONDS, 2500, TimeUnit.MILLISECONDS)
+        await().between(700, TimeUnit.MILLISECONDS, 2500, TimeUnit.MILLISECONDS)
                 .and()
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.GREEN));
 

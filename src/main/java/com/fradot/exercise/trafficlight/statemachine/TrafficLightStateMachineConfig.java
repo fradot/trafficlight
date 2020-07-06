@@ -18,7 +18,8 @@ import java.util.EnumSet;
  */
 @Configuration
 @EnableStateMachine
-public class TrafficLightStateMachineConfig extends EnumStateMachineConfigurerAdapter<TrafficLightState, TrafficLightTransition> {
+public class TrafficLightStateMachineConfig
+        extends EnumStateMachineConfigurerAdapter<TrafficLightState, TrafficLightTransition> {
 
     private final TrafficLightListener trafficLightListener;
 
@@ -31,36 +32,40 @@ public class TrafficLightStateMachineConfig extends EnumStateMachineConfigurerAd
     }
 
     @Override
-    public void configure(StateMachineConfigurationConfigurer<TrafficLightState, TrafficLightTransition> config) throws Exception {
+    public void configure(StateMachineConfigurationConfigurer<TrafficLightState, TrafficLightTransition> config)
+            throws Exception {
         log.info("Initializing state machine configuration.");
         super.configure(config);
-        config.withConfiguration()
-                .autoStartup(true)
-                .listener(trafficLightListener);
+        config.withConfiguration().autoStartup(true).listener(trafficLightListener);
     }
 
     @Override
-    public void configure(StateMachineStateConfigurer<TrafficLightState, TrafficLightTransition> states) throws Exception {
+    public void configure(StateMachineStateConfigurer<TrafficLightState, TrafficLightTransition> states)
+            throws Exception {
         log.info("Initializing state machine states.");
         super.configure(states);
-        states.withStates()
-                .initial(TrafficLightState.RED)
-                .states(EnumSet.allOf(TrafficLightState.class));
+        states.withStates().initial(TrafficLightState.RED).states(EnumSet.allOf(TrafficLightState.class));
     }
 
     @Override
-    public void configure(StateMachineTransitionConfigurer<TrafficLightState, TrafficLightTransition> transitions) throws Exception {
+    public void configure(StateMachineTransitionConfigurer<TrafficLightState, TrafficLightTransition> transitions)
+            throws Exception {
         log.info("Initializing state machine transitions.");
         super.configure(transitions);
         transitions
                 .withExternal()
-                .source(TrafficLightState.RED).target(TrafficLightState.GREEN).event(TrafficLightTransition.TRANSITION)
+                .source(TrafficLightState.RED)
+                .target(TrafficLightState.GREEN)
+                .event(TrafficLightTransition.TRANSITION)
                 .and()
                 .withExternal()
-                .source(TrafficLightState.GREEN).target(TrafficLightState.ORANGE).event(TrafficLightTransition.TRANSITION)
+                .source(TrafficLightState.GREEN)
+                .target(TrafficLightState.ORANGE)
+                .event(TrafficLightTransition.TRANSITION)
                 .and()
                 .withExternal()
-                .source(TrafficLightState.ORANGE).target(TrafficLightState.RED).event(TrafficLightTransition.TRANSITION);
+                .source(TrafficLightState.ORANGE)
+                .target(TrafficLightState.RED)
+                .event(TrafficLightTransition.TRANSITION);
     }
-
 }

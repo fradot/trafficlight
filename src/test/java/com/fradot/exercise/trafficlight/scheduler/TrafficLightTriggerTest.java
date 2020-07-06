@@ -66,39 +66,41 @@ public class TrafficLightTriggerTest {
     @Test
     public void itShouldCalculateTheNextExecutionTimeBasedOnCurrentDateTimePlusDelayForTheFirstExecution() {
         this.trafficLightConfigurationQueue = new PriorityBlockingQueue<>(1);
-        this.trafficLightConfigurationQueue.add(new TrafficLightConfiguration(1L, 10L, 10L, 10L,
-                "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?", 5, false));
+        this.trafficLightConfigurationQueue.add(
+                new TrafficLightConfiguration(1L, 10L, 10L, 10L, "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?", 5, false));
         this.trafficLightTriggerUnderTest = new TrafficLightTrigger(stateMachine, trafficLightConfigurationQueue);
-
 
         when(triggerContext.lastActualExecutionTime()).thenReturn(null);
         when(orangeState.getId()).thenReturn(TrafficLightState.ORANGE);
         when(stateMachine.getState()).thenReturn(orangeState);
 
         LocalDateTime currentTime = LocalDateTime.now();
-        Date expectedNextExecutionTime = Date.from(currentTime.atZone(ZoneId.systemDefault()).plusSeconds(10L).toInstant());
+        Date expectedNextExecutionTime = Date.from(
+                currentTime.atZone(ZoneId.systemDefault()).plusSeconds(10L).toInstant());
 
-        assertThat(trafficLightTriggerUnderTest.nextExecutionTime(triggerContext)).isCloseTo(expectedNextExecutionTime, 300);
+        assertThat(trafficLightTriggerUnderTest.nextExecutionTime(triggerContext))
+                .isCloseTo(expectedNextExecutionTime, 300);
         verify(triggerContext, times(1)).lastActualExecutionTime();
     }
 
     @Test
     public void itShouldCalculateTheNextExecutionTimeBasedOnLastActualExecutionTimeIfPresent() {
         this.trafficLightConfigurationQueue = new PriorityBlockingQueue<>(1);
-        this.trafficLightConfigurationQueue.add(new TrafficLightConfiguration(1L, 10L, 10L, 10L,
-                "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?", 5, false));
+        this.trafficLightConfigurationQueue.add(
+                new TrafficLightConfiguration(1L, 10L, 10L, 10L, "0 0/2 * 1/1 * ?", "0 0/2 * 1/1 * ?", 5, false));
         this.trafficLightTriggerUnderTest = new TrafficLightTrigger(stateMachine, trafficLightConfigurationQueue);
 
         LocalDateTime currentTime = LocalDateTime.now();
-        when(triggerContext.lastActualExecutionTime()).thenReturn(Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant()));
+        when(triggerContext.lastActualExecutionTime())
+                .thenReturn(Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant()));
         when(orangeState.getId()).thenReturn(TrafficLightState.ORANGE);
         when(stateMachine.getState()).thenReturn(orangeState);
 
-        Date expectedNextExecutionTime = Date.from(currentTime.atZone(ZoneId.systemDefault()).plusSeconds(10L).toInstant());
+        Date expectedNextExecutionTime = Date.from(
+                currentTime.atZone(ZoneId.systemDefault()).plusSeconds(10L).toInstant());
 
-        assertThat(trafficLightTriggerUnderTest.nextExecutionTime(triggerContext)).isCloseTo(expectedNextExecutionTime, 300);
+        assertThat(trafficLightTriggerUnderTest.nextExecutionTime(triggerContext))
+                .isCloseTo(expectedNextExecutionTime, 300);
         verify(triggerContext, times(1)).lastActualExecutionTime();
     }
-
-
 }

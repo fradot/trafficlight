@@ -12,7 +12,7 @@ public enum TrafficLightState {
     private final String name;
     private final Long defaultInterval;
 
-    TrafficLightState(final String name, Long defaultInterval){
+    TrafficLightState(final String name, Long defaultInterval) {
         this.name = name;
         this.defaultInterval = defaultInterval;
     }

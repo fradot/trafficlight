@@ -24,9 +24,7 @@ public class TrafficLightConfigurationTest {
 
         @Bean
         public TrafficLightConfiguration trafficLightConfiguration() {
-            return new TrafficLightConfiguration(
-                    1L, 1L, 1L, 1L, START_CRON,
-                    END_CRON, 6, false);
+            return new TrafficLightConfiguration(1L, 1L, 1L, 1L, START_CRON, END_CRON, 6, false);
         }
     }
 
@@ -35,47 +33,41 @@ public class TrafficLightConfigurationTest {
 
     @Test
     public void itShouldBeEqualToAnObjectWithTheSameProperties() {
-        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
-                1L, 1L, 1L, 1L, START_CRON,
-                END_CRON, 6, false);
+        TrafficLightConfiguration testConfiguration =
+                new TrafficLightConfiguration(1L, 1L, 1L, 1L, START_CRON, END_CRON, 6, false);
 
         assertTrue(trafficLightConfiguration.equals(testConfiguration));
     }
 
     @Test
     public void itShouldBeDifferentFromAnObjectWithDifferentProperties() {
-        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
-                -1L, 1L, 1L, 1L, START_CRON,
-                END_CRON, 6, true);
+        TrafficLightConfiguration testConfiguration =
+                new TrafficLightConfiguration(-1L, 1L, 1L, 1L, START_CRON, END_CRON, 6, true);
 
         assertTrue(!trafficLightConfiguration.equals(testConfiguration));
     }
 
     @Test
     public void itShouldCompareGreaterThanAnObjectWithLowestPriority() {
-        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
-                -1L, 1L, 1L, 1L, START_CRON,
-                END_CRON, 5, false);
+        TrafficLightConfiguration testConfiguration =
+                new TrafficLightConfiguration(-1L, 1L, 1L, 1L, START_CRON, END_CRON, 5, false);
 
         assertThat(trafficLightConfiguration).isGreaterThan(testConfiguration);
     }
 
     @Test
     public void itShouldCompareLessThanAnObjectWithLowestPriority() {
-        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
-                -1L, 1L, 1L, 1L, START_CRON,
-                END_CRON, 7, false);
+        TrafficLightConfiguration testConfiguration =
+                new TrafficLightConfiguration(-1L, 1L, 1L, 1L, START_CRON, END_CRON, 7, false);
 
         assertThat(trafficLightConfiguration).isLessThan(testConfiguration);
     }
 
     @Test
     public void itShouldCompareEqualToAnObjectWithTheSamePriorityAndSameProperties() {
-        TrafficLightConfiguration testConfiguration = new TrafficLightConfiguration(
-                -1L, 1L, 1L, 1L, START_CRON,
-                END_CRON, 6, false);
+        TrafficLightConfiguration testConfiguration =
+                new TrafficLightConfiguration(-1L, 1L, 1L, 1L, START_CRON, END_CRON, 6, false);
 
         assertThat(trafficLightConfiguration).isLessThanOrEqualTo(testConfiguration);
     }
-
 }

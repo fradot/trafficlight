@@ -17,49 +17,50 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class TrafficLightStateMachineIT {
 
-  @Autowired private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
+    @Autowired
+    private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
 
-  @DisplayName("The initial State should be RED.")
-  @Test
-  public void itShouldHaveRedAsTheInitialState() throws Exception {
-    stateMachine.stop();
-    StateMachineTestPlan<TrafficLightState, TrafficLightTransition> plan =
-        StateMachineTestPlanBuilder.<TrafficLightState, TrafficLightTransition>builder()
-            .stateMachine(stateMachine)
-            .step()
-            .expectStates(TrafficLightState.RED)
-            .and()
-            .build();
-    plan.test();
-  }
+    @DisplayName("The initial State should be RED.")
+    @Test
+    public void itShouldHaveRedAsTheInitialState() throws Exception {
+        stateMachine.stop();
+        StateMachineTestPlan<TrafficLightState, TrafficLightTransition> plan =
+                StateMachineTestPlanBuilder.<TrafficLightState, TrafficLightTransition>builder()
+                        .stateMachine(stateMachine)
+                        .step()
+                        .expectStates(TrafficLightState.RED)
+                        .and()
+                        .build();
+        plan.test();
+    }
 
-  @DisplayName("It should transition to GREEN then to ORANGE and back to RED.")
-  @Test
-  public void itShouldTransitionToGreenThenToOrangeThenBackToRed() throws Exception {
-    stateMachine.stop();
-    StateMachineTestPlan<TrafficLightState, TrafficLightTransition> plan =
-        StateMachineTestPlanBuilder.<TrafficLightState, TrafficLightTransition>builder()
-            .stateMachine(stateMachine)
-            .step()
-            .sendEvent(TrafficLightTransition.TRANSITION)
-            .expectStates(TrafficLightState.GREEN)
-            .and()
-            .step()
-            .sendEvent(TrafficLightTransition.TRANSITION)
-            .expectState(TrafficLightState.ORANGE)
-            .and()
-            .step()
-            .sendEvent(TrafficLightTransition.TRANSITION)
-            .expectState(TrafficLightState.RED)
-            .and()
-            .build();
+    @DisplayName("It should transition to GREEN then to ORANGE and back to RED.")
+    @Test
+    public void itShouldTransitionToGreenThenToOrangeThenBackToRed() throws Exception {
+        stateMachine.stop();
+        StateMachineTestPlan<TrafficLightState, TrafficLightTransition> plan =
+                StateMachineTestPlanBuilder.<TrafficLightState, TrafficLightTransition>builder()
+                        .stateMachine(stateMachine)
+                        .step()
+                        .sendEvent(TrafficLightTransition.TRANSITION)
+                        .expectStates(TrafficLightState.GREEN)
+                        .and()
+                        .step()
+                        .sendEvent(TrafficLightTransition.TRANSITION)
+                        .expectState(TrafficLightState.ORANGE)
+                        .and()
+                        .step()
+                        .sendEvent(TrafficLightTransition.TRANSITION)
+                        .expectState(TrafficLightState.RED)
+                        .and()
+                        .build();
 
-    plan.test();
-  }
+        plan.test();
+    }
 
-  @AfterTestClass
-  public void shutDownStateMachine() {
-    stateMachine.stop();
-    stateMachine = null;
-  }
+    @AfterTestClass
+    public void shutDownStateMachine() {
+        stateMachine.stop();
+        stateMachine = null;
+    }
 }

@@ -9,10 +9,50 @@ A simple Traffic light simulator app based on Spring Boot.
 - Each configuration can be defined with a priority to determine which configuration to 
 execute in case of overlapping configurations.
 - H2 file persisted database available.
+- High code coverage
+
+---
 
 #### Quick Overview:
 
-TODO  
+*StateMachine:* The states transitions are based on the spring state machine module. The state machine automatically start on application
+startup with an initial state RED and wait for transition events to be triggered. A listener is registered which logs
+the current states after each transition.
+
+*Scheduler:* A custom implementation of the __SchedulingConfigurer__ is registering a custom __Trigger__ which defines the 
+next execution time calculated based on the current configuration.
+
+*How it works:* At startup the application loads the active configurations from the database and register two 
+cron tasks (__ScheduledFuture__) for each configuration, an enabling task and a disabling task. The tasks
+are scheduled based on the cron expressions defined. Each task has a reference to the corresponding configuration
+and as soon as it gets triggered it adds (if enabling task) or removes (if disabling) the configuration
+to/from a __PriorityBlockingQueue<TrafficLightConfiguration>__ which maintains all the active configurations.
+The active configuration is retrieved by the the custom __Trigger__ which uses __peek()__ on the priority
+queue to get the configuration with highest priority. Based on this configuration, the next execution time
+is calculated.
+
+*An example:* To have a traffic light configuration which runs every Monday, Tuesday and Friday, from 8:00am
+to 8:00pm it will be enough to define a configuration like this:
+- start cron: 0 0 8 ? * MON,TUE,FRI
+- end cron: 0 0 20 ? * MON,TUE,FRI
+
+If an end cron is not defined the configuration will run continuously.
+If a start configuration is not defined then the configuration will never be activated.
+Having the possibility to define a configuration priority, we can have multiple overlapping configurations 
+achieving a high degree of customization.
+
+*Enabling/Disabling a task at runtime:* During startup a task is registered to periodically synch with the database
+and check for all the configuration to be enabled (__toBeEnabled__) and to be disabled(__toBeDisabled__) and
+which are not currently active. All the configurations to be enabled found are added to the queue and set to active.
+All the configurations to be disabled are removed from the queue and set to not active.
+
+*Improvements:* 
+- A proxy to handle the configuration queue and hide its implementation.
+- A maximum number of configurations that can be defined based on available resources.
+- Optimisation of configuration retrieval and update from/to database (batch).
+- Load just configurations on a weekly basis.
+- A controller listener to push the state of the traffic light to all the listening clients, using 
+websocket.
 
 ---
 

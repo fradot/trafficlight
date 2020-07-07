@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -57,9 +58,15 @@ class TrafficLightTaskEnablingAtRuntimeIT {
         log.info("wait for the new configuration to be activated.");
         await().timeout(200, TimeUnit.SECONDS).and().until(() -> trafficLightConfigurationQueue.size() >= 4);
 
+        // buffer
+        sleep(30);
+
         log.info("wait for RED.");
         await().timeout(60, TimeUnit.SECONDS)
                 .until(() -> stateMachine.getState().getId().equals(TrafficLightState.RED));
+
+        // buffer
+        sleep(30);
 
         log.info("GREEN is displayed after between 15500ms and 16500ms.");
         await().between(15500, TimeUnit.MILLISECONDS, 16500, TimeUnit.MILLISECONDS)

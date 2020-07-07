@@ -71,6 +71,7 @@ public class TrafficLightService {
                 configuration.setToBeDisabled(false);
                 configuration.setToBeEnabled(false);
 
+                // TODO: batch
                 trafficLightConfigurationRepository.save(configuration);
             }
         }
@@ -112,7 +113,7 @@ public class TrafficLightService {
                 configuration.setActive(true);
                 configuration.setToBeDisabled(false);
                 configuration.setToBeEnabled(false);
-
+                // TODO: batch
                 this.trafficLightConfigurationRepository.save(configuration);
             }
         }

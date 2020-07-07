@@ -32,8 +32,8 @@ public class TrafficLightListener extends StateMachineListenerAdapter<TrafficLig
     public void stateMachineError(
             StateMachine<TrafficLightState, TrafficLightTransition> stateMachine, Exception exception) {
         super.stateMachineError(stateMachine, exception);
-        log.error("Cancelling all scheduled tasks. Next database synchronization will try to resume execution.");
+        log.error("Traffic Light state machine error");
         stateMachine.stop();
-        throw new IllegalStateException("Traffic Light State Machine error", exception);
+        throw new IllegalStateException("Traffic Light state machine error", exception);
     }
 }

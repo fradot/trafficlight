@@ -52,8 +52,6 @@ public class TrafficLightTrigger implements Trigger {
                 .toInstant());
     }
 
-
-
     private LocalDateTime convertToLocalDateTime(Date date) {
         return date != null
                 ? Instant.ofEpochMilli(date.getTime())

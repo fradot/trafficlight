@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -18,9 +19,11 @@ import java.util.Optional;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 
+import static java.lang.Thread.sleep;
+
 /** This class maintains the logic to handle the {@link TrafficLightConfiguration} life cycle. */
 @Service
-@Transactional
+@EnableTransactionManagement
 public class TrafficLightService {
 
     @Value("${trafficlight.database.synch.cron}")
@@ -44,7 +47,9 @@ public class TrafficLightService {
         this.trafficLightConfigurationRepository = trafficLightConfigurationRepository;
     }
 
+    @Transactional
     public void synchWithDatabase() {
+        log.info("Synchronizing with the database...");
         this.enableConfigurations(this.trafficLightConfigurationRepository.findAllConfigurationsToBeEnabled());
         this.disableConfigurations(this.trafficLightConfigurationRepository.findAllConfigurationsToBeDisabled());
     }
@@ -59,12 +64,18 @@ public class TrafficLightService {
                     && !configuration.getToBeEnabled()) {
 
                 // remove tasks
-                trafficLightScheduler.deleteCronTask(configuration.getId() + DISABLING);
-                trafficLightScheduler.deleteCronTask(configuration.getId() + ENABLING);
+                try {
+                    trafficLightScheduler.cancelCronTask(configuration.getId() + DISABLING);
+                    trafficLightScheduler.cancelCronTask(configuration.getId() + ENABLING);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
 
                 // remove from the queue
                 if (trafficLightConfigurationQueue.contains(configuration)) {
                     trafficLightConfigurationQueue.remove(configuration);
+                } else {
+                    log.error("Trying removing a non-existing configuration");
                 }
 
                 configuration.setActive(false);
@@ -82,39 +93,47 @@ public class TrafficLightService {
 
         // Schedule enabling and disabling tasks
         for (TrafficLightConfiguration configuration : trafficLightConfigurationList) {
+
             if (!configuration.isDefaultConfiguration()
                     && !configuration.getActive()
                     && !configuration.getToBeDisabled()
                     && configuration.getToBeEnabled()) {
-                // enabling task
-                if (configuration.getStartCronExpression() == null
-                        || (configuration.getStartCronExpression() != null
-                                && configuration.getStartCronExpression().isEmpty())) {
-                    log.warn("Start cron expression is not defined, configuration will never be activated!");
-                } else {
-                    String enablingTaskId = configuration.getId().toString() + ENABLING;
-                    TrafficLightRunnableTask enabling = new TrafficLightRunnableTask(
-                            this.trafficLightConfigurationQueue, configuration, true, false);
-                    trafficLightScheduler.addCronTask(enablingTaskId, enabling, configuration.getStartCronExpression());
-                }
 
-                // disabling task
-                if (configuration.getEndCronExpression() == null
-                        || (configuration.getEndCronExpression() != null
-                                && configuration.getEndCronExpression().isEmpty())) {
-                    log.warn("Start cron expression is not defined, configuration will never be activated!");
-                } else {
-                    TrafficLightRunnableTask disabling = new TrafficLightRunnableTask(
-                            this.trafficLightConfigurationQueue, configuration, false, true);
-                    String disablingTaskId = configuration.getId().toString() + DISABLING;
-                    trafficLightScheduler.addCronTask(disablingTaskId, disabling, configuration.getEndCronExpression());
-                }
+                try {
+                    // enabling task
+                    if (configuration.getStartCronExpression() == null
+                            || (configuration.getStartCronExpression() != null
+                                    && configuration.getStartCronExpression().isEmpty())) {
+                        log.warn("Start cron expression is not defined, configuration will never be activated!");
+                    } else {
+                        String enablingTaskId = configuration.getId().toString() + ENABLING;
+                        TrafficLightRunnableTask enabling = new TrafficLightRunnableTask(
+                                this.trafficLightConfigurationQueue, configuration, true, false);
+                        trafficLightScheduler.addCronTask(
+                                enablingTaskId, enabling, configuration.getStartCronExpression());
+                    }
 
-                configuration.setActive(true);
-                configuration.setToBeDisabled(false);
-                configuration.setToBeEnabled(false);
-                // TODO: batch
-                this.trafficLightConfigurationRepository.save(configuration);
+                    // disabling task
+                    if (configuration.getEndCronExpression() == null
+                            || (configuration.getEndCronExpression() != null
+                                    && configuration.getEndCronExpression().isEmpty())) {
+                        log.warn("End cron expression is not defined, configuration will never be disabled!");
+                    } else {
+                        TrafficLightRunnableTask disabling = new TrafficLightRunnableTask(
+                                this.trafficLightConfigurationQueue, configuration, false, true);
+                        String disablingTaskId = configuration.getId().toString() + DISABLING;
+                        trafficLightScheduler.addCronTask(
+                                disablingTaskId, disabling, configuration.getEndCronExpression());
+                    }
+
+                    configuration.setActive(true);
+                    configuration.setToBeDisabled(false);
+                    configuration.setToBeEnabled(false);
+                    // TODO: batch
+                    this.trafficLightConfigurationRepository.save(configuration);
+                } catch (Exception e) {
+                    log.error("Error creating configuration {}, {}", configuration.toString(), e.getMessage());
+                }
             }
         }
     }
@@ -145,7 +164,19 @@ public class TrafficLightService {
     @PostConstruct
     public void init() {
         trafficLightScheduler.addStartupTask(this::enableAllActiveConfigurationsAtStartup);
-        trafficLightScheduler.addStartupTask(
-                () -> trafficLightScheduler.addCronTask("synch", this::synchWithDatabase, synchCron));
+        trafficLightScheduler.addStartupTask(() -> {
+            try {
+                trafficLightScheduler.addCronTask("synch", this::synchWithDatabase, synchCron);
+            } catch (Exception e) {
+                log.error("Error scheduling database synchronization task! Cancelling all tasks! {}", e.getMessage());
+                try {
+                    sleep(20);
+                    log.error("Cancelling all scheduled tasks");
+                    trafficLightScheduler.deleteAllScheduledTasks();
+                } catch (InterruptedException interruptedException) {
+                    interruptedException.printStackTrace();
+                }
+            }
+        });
     }
 }

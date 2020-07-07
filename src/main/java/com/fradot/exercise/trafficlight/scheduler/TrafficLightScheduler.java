@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.statemachine.StateMachine;
 
@@ -43,7 +44,7 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
     private ConcurrentMap<String, ScheduledFuture> scheduledFutureMap;
     private StateMachine<TrafficLightState, TrafficLightTransition> stateMachine;
     private TrafficLightTrigger trafficLightTrigger;
-    private List startupTasks;
+    private List<Runnable> startupTasks;
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
@@ -100,9 +101,14 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
      * @param task
      * @param cronExpression
      */
-    public void addCronTask(String id, Runnable task, String cronExpression) {
-        ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler.schedule(task, new CronTrigger(cronExpression));
-        scheduledFutureMap.put(id, scheduledFuture);
+    public void addCronTask(String id, Runnable task, String cronExpression) throws Exception {
+        if (CronSequenceGenerator.isValidExpression(cronExpression)) {
+            ScheduledFuture<?> scheduledFuture =
+                    threadPoolTaskScheduler.schedule(task, new CronTrigger(cronExpression));
+            scheduledFutureMap.put(id, scheduledFuture);
+        } else {
+            throw new Exception(String.format("Trying scheduling a non valid cron expression %s", cronExpression));
+        }
     }
 
     /**
@@ -110,8 +116,12 @@ public class TrafficLightScheduler implements SchedulingConfigurer {
      *
      * @param id
      */
-    public void deleteCronTask(String id) {
-        scheduledFutureMap.get(id).cancel(true);
+    public void cancelCronTask(String id) throws Exception {
+        if (scheduledFutureMap.containsKey(id)) {
+            scheduledFutureMap.get(id).cancel(true);
+        } else {
+            throw new Exception(String.format("Trying cancelling a non-existing task %s", id));
+        }
     }
 
     /**

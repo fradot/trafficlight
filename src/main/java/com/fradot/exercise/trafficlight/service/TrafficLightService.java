@@ -63,27 +63,27 @@ public class TrafficLightService {
                     && configuration.getToBeDisabled()
                     && !configuration.getToBeEnabled()) {
 
-                // remove tasks
                 try {
+                    // remove tasks
                     trafficLightScheduler.cancelCronTask(configuration.getId() + DISABLING);
                     trafficLightScheduler.cancelCronTask(configuration.getId() + ENABLING);
+
+                    // remove from the queue
+                    if (trafficLightConfigurationQueue.contains(configuration)) {
+                        trafficLightConfigurationQueue.remove(configuration);
+                    } else {
+                        throw new Exception("Trying removing a non-existing configuration");
+                    }
+
+                    configuration.setActive(false);
+                    configuration.setToBeDisabled(false);
+                    configuration.setToBeEnabled(false);
+
+                    // TODO: batch
+                    trafficLightConfigurationRepository.save(configuration);
                 } catch (Exception e) {
                     log.error(e.getMessage());
                 }
-
-                // remove from the queue
-                if (trafficLightConfigurationQueue.contains(configuration)) {
-                    trafficLightConfigurationQueue.remove(configuration);
-                } else {
-                    log.error("Trying removing a non-existing configuration");
-                }
-
-                configuration.setActive(false);
-                configuration.setToBeDisabled(false);
-                configuration.setToBeEnabled(false);
-
-                // TODO: batch
-                trafficLightConfigurationRepository.save(configuration);
             }
         }
     }

@@ -61,6 +61,7 @@ websocket.
 Option 1 - use H2 in memory database (may conflict with IT database):
    - Set spring.jpa.hibernate.ddl-auto=create-drop
    - Set spring.datasource.url=jdbc:h2:mem:testdb in application.properties
+
 Option 2 - use H2 file database:
    - Set spring.jpa.hibernate.ddl-auto=update
    - Set spring.datasource.url=jdbc:h2:file:./data/h2_file_db;DB_CLOSE_ON_EXIT=FALSE in application.properties

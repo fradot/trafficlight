@@ -59,18 +59,18 @@ websocket.
 
 ##### Database
 Option 1 - use H2 in memory database (may conflict with IT database):
-    - Set spring.jpa.hibernate.ddl-auto=create-drop
-    - Set spring.datasource.url=jdbc:h2:mem:testdb in application.properties
+   - Set spring.jpa.hibernate.ddl-auto=create-drop
+   - Set spring.datasource.url=jdbc:h2:mem:testdb in application.properties
 Option 2 - use H2 file database:
-    - Set spring.jpa.hibernate.ddl-auto=update
-    - Set spring.datasource.url=jdbc:h2:file:./data/h2_file_db;DB_CLOSE_ON_EXIT=FALSE in application.properties
-    - Download and execute the H2 database engine available [here](https://www.h2database.com/html/main.html)
-    - Use the browser interface to access the following database
+   - Set spring.jpa.hibernate.ddl-auto=update
+   - Set spring.datasource.url=jdbc:h2:file:./data/h2_file_db;DB_CLOSE_ON_EXIT=FALSE in application.properties
+   - Download and execute the H2 database engine available [here](https://www.h2database.com/html/main.html)
+   - Use the browser interface to access the following database
         - Driver: org.h2.Driver
         - jdbc:h2:./data/h2_file_db (make sure to point to the correct file location)
         - user: sa
         - password: password
-    - There are 2 configurations already stored in the database (table TL_CONFIGURATIONS), a default configuration
+   - There are 2 configurations already stored in the database (table TL_CONFIGURATIONS), a default configuration
     which is mandatory to have, and a basic configuration which execute every 2 seconds.
 
 
